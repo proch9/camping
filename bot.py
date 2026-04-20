@@ -6,6 +6,7 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "8771270282:AAH_jSr_R-b_uVK3RBAzgSzKGmIMkO1iWUI"
+GROUP_ID = -1002694002879  # <-- ТВОЯ ГРУППА
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -40,7 +41,7 @@ async def handle_trip(message: types.Message):
 
     if "route" not in data:
         data["route"] = message.text
-        await message.answer("Введите дату (YYYY-MM-DD):")
+        await message.answer("Введите дату (DD-MM/DD-MM):")
 
     elif "date" not in data:
         data["date"] = message.text
@@ -57,13 +58,14 @@ async def handle_trip(message: types.Message):
 
         title = f"{data['route']} {formatted_date}"
 
-        # --- СОЗДАЁМ ТЕМУ ---
+        # --- СОЗДАЁМ ТЕМУ В ГРУППЕ ---
         topic = await bot.create_forum_topic(
-            chat_id=message.chat.id,
+            chat_id=GROUP_ID,
             name=title
         )
 
-        topic_link = f"https://t.me/c/{str(message.chat.id)[4:]}/{topic.message_thread_id}"
+        # --- ССЫЛКА НА ТЕМУ ---
+        topic_link = f"https://t.me/c/{str(GROUP_ID)[4:]}/{topic.message_thread_id}"
 
         text = f"""🚗 <b>{title}</b>
 
@@ -75,8 +77,11 @@ async def handle_trip(message: types.Message):
 💬 <a href="{topic_link}">Обсуждение</a>
 """
 
-        msg = await message.answer(
-            text,
+        # --- ОТПРАВКА В ТЕМУ ---
+        msg = await bot.send_message(
+            chat_id=GROUP_ID,
+            message_thread_id=topic.message_thread_id,
+            text=text,
             reply_markup=get_keyboard(trip_id),
             parse_mode="HTML"
         )
@@ -91,7 +96,7 @@ async def handle_trip(message: types.Message):
             delete_message,
             "date",
             run_date=trip_datetime,
-            args=[message.chat.id, msg.message_id]
+            args=[GROUP_ID, msg.message_id]
         )
 
         trips.pop(user_id)
