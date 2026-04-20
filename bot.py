@@ -41,7 +41,7 @@ async def handle_trip(message: types.Message):
 
     if "route" not in data:
         data["route"] = message.text
-        await message.answer("Введите дату (%Y-%m-%d):")
+        await message.answer("Введите дату (YYYY-MM-DD):")
 
     elif "date" not in data:
         data["date"] = message.text
